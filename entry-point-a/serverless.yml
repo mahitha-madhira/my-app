@@ -1,0 +1,17 @@
+service: entry-point-a
+provider:
+  name: aws
+  runtime: nodejs14.x
+  stage: dev
+  region: us-east-1
+
+functions:
+  handle:
+    handler: index.handler
+    events:
+      - http:
+          path: graphql
+          method: post
+
+plugins:
+  - serverless-offline
