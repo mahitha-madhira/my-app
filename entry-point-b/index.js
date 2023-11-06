@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const httpApis = require('./http-apis');
+const httpApis = require('../src/serviceB/http-api');
 
 app.get('/api/hello', (req, res) => {
     res.json({ message: 'Hello from HTTP API!' });
