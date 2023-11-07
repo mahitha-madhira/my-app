@@ -1,8 +1,0 @@
-{
-  "name": "entry-point-b",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "start": "pm2 start ecosystem.config.js"
-  }
-}

@@ -7,11 +7,13 @@ provider:
 
 functions:
   handle:
-    handler: index.handler
+    handler: src/index.handler
     events:
       - http:
           path: graphql
           method: post
+    environment:
+      IS_SERVERLESS: true
 
 plugins:
   - serverless-offline

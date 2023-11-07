@@ -1,8 +1,0 @@
-{
-  "name": "entry-point-a",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "start": "npx serverless offline --httpPort 3001"
-  }
-}
