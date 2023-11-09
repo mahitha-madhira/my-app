@@ -1,24 +1,32 @@
-const { graphql } = require('graphql'); // Import the necessary GraphQL packages
+const { graphql } = require('graphql');
+const { ApolloServer } = require('apollo-server-express');
+const { makeExecutableSchema } = require('graphql-tools');
+const express = require('express');
+
 const yourGraphQLSchema = require('./serviceA/schema');
 const resolverA = require('./serviceA/resolver');
-const { graphqlHTTP } = require("express-graphql");
-const { ApolloServer } = require("apollo-server-express");
-const { makeExecutableSchema } = require("graphql-tools");
-const express = require("express");
 
 const isServerless = process.env.IS_SERVERLESS === 'true';
 
-const getResponse = async (payload) => {
-    console.log("Payload", "::", payload);
-    const params = JSON.parse(payload.body);
+// Create the executable schema
+const executableSchema = makeExecutableSchema({
+    typeDefs: yourGraphQLSchema,
+    resolvers: resolverA,
+});
 
-    // Execute your GraphQL query
-    const result = await graphql(yourGraphQLSchema, params.query, resolverA.Query);
+// Define the getResponse function
+const getResponse = async (payload) => {
+    const params = typeof payload.body === 'object' ? payload.body : JSON.parse(payload.body);
+
+    console.log('Params', '::', params);
+
+    // Execute your GraphQL query using the executable schema
+    const result = await graphql(executableSchema, params.query, resolverA.Query);
 
     let statusCode = 200;
     if (result.errors) {
         statusCode = 400;
-        console.log("Error", "::", result.errors);
+        console.log('Error', '::', result.errors);
     }
 
     const response = {
@@ -36,19 +44,17 @@ if (isServerless) {
         return response;
     };
 } else {
-    const express = require("express");
-    const { ApolloServer } = require("apollo-server-express");
-    const { makeExecutableSchema } = require("graphql-tools");
-
     const app = express();
 
-    // Merge the schemas
-    const schema = makeExecutableSchema({
-        typeDefs: yourGraphQLSchema,
-        resolvers: resolverA,
-    });
+    // Use the Apollo Server with the executable schema
+    const server = new ApolloServer( {schema: executableSchema});
 
-    const server = new ApolloServer({ schema });
+    app.use(express.json());
+
+    app.post('/graphql', async (req, res) => {
+        const response = await getResponse(req);
+        res.status(response.statusCode).json(JSON.parse(response.body));
+    });
 
     async function startServer() {
         await server.start();
@@ -57,7 +63,7 @@ if (isServerless) {
 
     startServer().then(() => {
         app.listen(9003, () => {
-            console.log(`Example app listening on port 9003`);
+            console.log('Example app listening on port 9003');
         });
     }).catch(error => {
         console.error('Error starting Apollo Server:', error);
